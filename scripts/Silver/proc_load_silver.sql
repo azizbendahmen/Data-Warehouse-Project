@@ -10,7 +10,7 @@ Begin
 		print'Loading CRM'
 		print'====================='
 
-    truncate table Silver.crm_cust_info
+   		truncate table Silver.crm_cust_info
 		insert into Silver.crm_cust_info(	
 			cst_id,
 			cst_key,
@@ -109,6 +109,60 @@ Begin
 				else sls_price
 			end sls_price
 		from Bronze.crm_sales_details
+
+
+
+	
+		print'====================='
+		print'Loading ERP'
+		print'====================='
+		
+		truncate table Silver.erp_loc_a101
+		insert into Silver.erp_loc_a101(
+			cid ,
+			cntry
+		)
+		select 
+			replace(cid, '-', ''),
+			case when trim(cntry) ='DE' then 'Germany'
+				 when trim(cntry) in ('USA','US') then 'United States'
+				 when trim(cntry)='' or cntry is null then 'n/a'
+				 else trim(cntry)
+			end cntry
+		from Bronze.erp_loc_a101
+		
+		
+		truncate table Silver.erp_cust_az12
+		insert into Silver.erp_cust_az12(
+			cid,
+			bdate,
+			gen 
+		)
+		select 
+			substring(cid, 4,len (cid)) cid,
+			case when bdate> GETDATE() then null
+				else bdate
+			end dbate,
+			case when trim(gen) in ('Female', 'F') then 'Female'
+				 when trim(gen) in ('Male','M') then 'Male'
+				 when trim(gen)='' or gen is null then 'n/a'
+			end gen
+		from Bronze.erp_cust_az12
+		
+		
+		
+		truncate table Silver.erp_px_cat_g1v2
+		insert into Silver.erp_px_cat_g1v2(
+			id,
+			cat ,
+			subcat ,
+			maintenance 
+		)
+		select * 
+		from Bronze.erp_px_cat_g1v2
+
+
+		
 
 END
 
