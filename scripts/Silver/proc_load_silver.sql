@@ -1,5 +1,9 @@
 create or alter procedure Silver.load_silver as
 Begin
+
+	declare @start_load datetime , @end_load datetime 
+	declare @start_full_load datetime , @end_full_load datetime
+	set @start_full_load = getdate()
 	begin try
 		print'====================='
 		print'Loading Silver Layer'
@@ -10,7 +14,9 @@ Begin
 		print'Loading CRM'
 		print'====================='
 
-   		truncate table Silver.crm_cust_info
+	
+		set @start_load =getdate()
+		truncate table Silver.crm_cust_info
 		insert into Silver.crm_cust_info(	
 			cst_id,
 			cst_key,
@@ -43,7 +49,10 @@ Begin
 			from Bronze.crm_cust_info 
 			where cst_id is not null) t
 		where firstr = 1 
+		set @end_load = GETDATE()
+		print ( 'Silver.crm_cust_info load time  = ' + CAST(datediff(second , @end_load , @start_load) as varchar)  + 'seconds')
 
+		set @start_load =getdate()
 		truncate table Silver.crm_prd_info
 		insert into Silver.crm_prd_info(
 			prd_id,
@@ -69,7 +78,11 @@ Begin
 			cast( 
 				cast(lead(prd_start_dt) over( partition by prd_key order by prd_start_dt) as datetime) - 1 as date) as prd_end_dt
 		from Bronze.crm_prd_info
-		
+		set @end_load = GETDATE()
+		print ( 'Silver.crm_prd_info load time  = ' + cast(datediff(second , @end_load , @start_load) as varchar) + 'seconds')
+
+
+		set @start_load =getdate()
 		truncate table Silver.crm_sales_details
 		insert into Silver.crm_sales_details(
 			sls_ord_num ,
@@ -109,14 +122,16 @@ Begin
 				else sls_price
 			end sls_price
 		from Bronze.crm_sales_details
+		set @end_load = GETDATE()
+		print ( 'Silver.crm_sales_details load time  = ' + cast(datediff(second , @end_load , @start_load) as varchar) + 'seconds')
 
 
 
-	
 		print'====================='
 		print'Loading ERP'
 		print'====================='
-		
+
+		set @start_load =getdate()
 		truncate table Silver.erp_loc_a101
 		insert into Silver.erp_loc_a101(
 			cid ,
@@ -130,8 +145,11 @@ Begin
 				 else trim(cntry)
 			end cntry
 		from Bronze.erp_loc_a101
-		
-		
+		set @end_load = GETDATE()
+		print ( 'Silver.cerp_loc_a101 load time  = ' + cast(datediff(second , @end_load , @start_load)as varchar) + 'seconds')
+
+
+		set @start_load =getdate()
 		truncate table Silver.erp_cust_az12
 		insert into Silver.erp_cust_az12(
 			cid,
@@ -148,9 +166,12 @@ Begin
 				 when trim(gen)='' or gen is null then 'n/a'
 			end gen
 		from Bronze.erp_cust_az12
-		
-		
-		
+		set @end_load = GETDATE()
+		print ( 'Silver.erp_cust_az12 load time  = ' + cast(datediff(second , @end_load , @start_load)as varchar) + 'seconds')
+
+
+
+		set @start_load =getdate()
 		truncate table Silver.erp_px_cat_g1v2
 		insert into Silver.erp_px_cat_g1v2(
 			id,
@@ -160,6 +181,11 @@ Begin
 		)
 		select * 
 		from Bronze.erp_px_cat_g1v2
+		set @end_load = GETDATE()
+		print ( 'Silver.erp_px_cat_g1v2 load time  = ' + cast(datediff(second , @end_load , @start_load)as varchar) + 'seconds')
+
+	set @end_full_load = GETDATE()
+	print ( 'silver layer load took :' + cast(datediff(second , @end_full_load , @start_full_load)as varchar) + 'seconds')
 	end try
 	begin catch
 		print('error happend during loading silver layer');
@@ -171,5 +197,3 @@ Begin
 END
 
 EXEC Silver.load_silver
-
-
