@@ -1,6 +1,6 @@
 create or alter procedure Silver.load_silver as
 Begin
-	
+	begin try
 		print'====================='
 		print'Loading Silver Layer'
 		print'====================='
@@ -160,9 +160,13 @@ Begin
 		)
 		select * 
 		from Bronze.erp_px_cat_g1v2
-
-
-		
+	end try
+	begin catch
+		print('error happend during loading silver layer');
+		print('error massege :'+ error_message());
+		print('error number :'+ cast (error_number() as nvarchar));
+		print('error state :'+ cast (error_state() as nvarchar));
+	end catch
 
 END
 
